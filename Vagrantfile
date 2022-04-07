@@ -18,30 +18,41 @@ Vagrant.configure("2") do |config|
     vb.customize ['usbfilter', 'add', '1', '--target', :id, '--name', 'Analog Devices, Inc. (White Mountain DSP) Blackfin USB Device', '--vendorid', '0x064b', '--productid', '0x0586']
    end
 
+  # Install docker
+  #
   config.vagrant.plugins = "vagrant-docker-compose"
   config.vm.provision :docker
     
   config.vm.provision "shell", inline: <<-SHELL
+    # Update and install
+    #
     apt-get update && apt-get upgrade -y
     apt-get install -y vim git build-essential make pkg-config usbutils
-
+    
+    # Fetch toolchain build docker container
+    #
     rm -rf /home/vagrant/build-bfin-tools
     git clone https://github.com/bangcorrupt/build-bfin-tools.git /home/vagrant/build-bfin-tools
     chown -R vagrant:vagrant /home/vagrant/build-bfin-tools
     
+    # Build GNU toolchain and OpenOCD
+    #
     sudo docker image build -t bangcorrupt/build-bfin-tools /home/vagrant/build-bfin-tools
     sudo docker run --rm -v /home/vagrant/build-bfin-tools/build:/home/builder bangcorrupt/build-bfin-tools
-    
+    #
     sudo cp -r /home/vagrant/build-bfin-tools/build/blackfin-plus-gnu/buildscript/bfin-elf/bin/* /usr/bin
     sudo cp -r /home/vagrant/build-bfin-tools/build/blackfin-plus-gnu/buildscript/bfin-elf/lib/* /usr/lib
     sudo cp -r /home/vagrant/build-bfin-tools/build/blackfin-plus-gnu/buildscript/bfin-elf/include/* /usr/include
 
+    # Install radare2 and blackfin plugin
+    #
     rm -rf radare2
     git clone https://github.com/radareorg/radare2 /home/vagrant/radare2
     chown -R vagrant:vagrant /home/vagrant/radare2
     ( cd radare2
       sys/install.sh
     )
-    r2pm init && r2pm update && r2pm -gi blackfin
+    r2pm init && r2pm update && r2pm -gi blackfin  
   SHELL
+
 end
