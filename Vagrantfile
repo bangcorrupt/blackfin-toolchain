@@ -10,8 +10,8 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
    
   config.vm.provider "virtualbox" do |vb|
-    vb.memory = "32768"
-    vb.cpus = "16"
+    vb.memory = "4096"
+    vb.cpus = "4"
     vb.customize ["modifyvm", :id, "--usb", "on"]
     vb.customize ["modifyvm", :id, "--usbehci", "on"]
     vb.customize ['usbfilter', 'add', '0', '--target', :id, '--name', 'Analog Devices, Inc. (White Mountain DSP) Blackfin USB Device', '--vendorid', '0x064b', '--productid', '0x0617']
